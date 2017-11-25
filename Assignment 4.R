@@ -18,9 +18,12 @@ github_token <- oauth2.0_token(oauth_endpoints("github"), myapp)
 
 gtoken <- config(token = github_token)
 
+#
 
-#shows who they are following
-listFollowing <- function(username)
+
+#FUNCTIONS TO DO WITH FOLLOWERS
+#shows who username is following
+listFollowing1 <- function(username)
 {
   getFollowing <- GET(paste0("https://api.github.com/users/", username, "/following"), gtoken)
   json1 = content(getFollowing)
@@ -29,10 +32,37 @@ listFollowing <- function(username)
   following <- githubDF$login
   return (following);
 }
-
 #listFollowing("beltonn");
 
-#lists followers
+
+
+#shows who the logged in developer is following
+listFollowing2 <- function()
+{
+  getFollowing <- GET("https://api.github.com/user/following", gtoken)
+  json1 = content(getFollowing)
+  json1
+  githubDF = jsonlite::fromJSON(jsonlite::toJSON(json1))
+  following <- githubDF$login
+  return (following);
+}
+listFollowing()
+
+
+#shows who the first 30 users of github is following
+?lapply
+listFirst30UsersFollowing <- function(){
+  users <- GET("https://api.github.com/users", gtoken)
+  json1 = content(users)
+  githubDF = jsonlite::fromJSON(jsonlite::toJSON(json1))
+  usernames <- c(githubDF$login)
+  allFollowing = lapply(usernames, listFollowing1)
+  return (allFollowing);
+}
+listFirst30UsersFollowing()
+
+
+#lists followers of username
 listFollowers <- function(username)
 {
   getFollowers <- GET(paste0("https://api.github.com/users/", username, "/followers"), gtoken)
@@ -42,6 +72,48 @@ listFollowers <- function(username)
   following <- githubDF$login
   return (following);
 }
-
 #listFollowers("beltonn")
+
+
+
+#lists followers of logged in developer
+listFollowers <- function()
+{
+  getFollowers <- GET(paste0("https://api.github.com/user/followers"), gtoken)
+  json1 = content(getFollowers)
+  json1
+  githubDF = jsonlite::fromJSON(jsonlite::toJSON(json1))
+  following <- githubDF$login
+  return (following);
+}
+listFollowers()
+
+
+
+#check if one user followers another user
+user1FollowUser2 <- function(username, targetUser)
+{
+  user1FollowsUser2 <- GET(paste0("https://api.github.com/users/",username, "/following/",targetUser),gtoken)
+  if(user1FollowsUser2$status == 404){
+       return(FALSE);
+  }
+  return(TRUE);
+}
+#print(user1FollowUser2("aoifetiernan", "beltonn"))
+
+
+
+#check if a user is following the logged in developer
+user1FollowUser2 <- function(targetUser)
+{
+  user1FollowsUser2 <- GET(paste0("https://api.github.com/user/following/",targetUser),gtoken)
+  if(user1FollowsUser2$status == 404){
+    return(FALSE);
+  }
+  return(TRUE);
+}
+print(user1FollowUser2("aoifetiernan"))
+
+
+
 

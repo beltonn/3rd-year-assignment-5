@@ -141,6 +141,43 @@ listReposOfUser <- function(username)
 }
 listReposOfUser("aoifetiernan")
 
+#list branches of logged in developer's branches of a given repository
+listOfBranches <- function(repository)
+{
+  branches <- GET(paste0("https://api.github.com/repos/aoifetiernan/", repository, "/branches"),gtoken)
+  json1 = content(branches)
+  json1
+  githubDF = jsonlite::fromJSON(jsonlite::toJSON(json1))
+  listOfBranches <- githubDF$name
+  return(listOfBranches);
+}
+#listOfBranches("final-assignment-1-3rd-year")
+listOfBranches("lowestCommonAncestor")
 
+
+#list branches of username branches of a given repository
+listOfBranches <- function(owner, repository)
+{
+  branches <- GET(paste0("https://api.github.com/repos/", owner, "/", repository, "/branches"),gtoken)
+  json1 = content(branches)
+  json1
+  githubDF = jsonlite::fromJSON(jsonlite::toJSON(json1))
+  listOfBranches <- githubDF$name
+  return(listOfBranches);
+}
+listOfBranches("aoifetiernan", "lowestCommonAncestor")
+
+
+#list commits of a certain repository
+listOfCommits <- function(owner, repository)
+{
+  commits <- GET(paste0("https://api.github.com/repos/", owner,"/", repository, "/commits"),gtoken)
+  json1 = content(commits)
+  json1
+  githubDF = jsonlite::fromJSON(jsonlite::toJSON(json1))
+  listOfCommits <- githubDF$commit$message
+  return(listOfCommits);
+}
+listOfCommits("beltonn", "final-assignment-1-3rd-year")
 
 

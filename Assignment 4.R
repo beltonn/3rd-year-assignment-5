@@ -1,8 +1,8 @@
-#install.packages("jsonlite")
+install.packages("jsonlite")
 library(jsonlite)
-#install.packages("httpuv")
+install.packages("httpuv")
 library(httpuv)
-#install.packages("httr")
+install.packages("httr")
 library(httr)
 install.packages("xml2")
 library(xml2)
@@ -18,21 +18,21 @@ github_token <- oauth2.0_token(oauth_endpoints("github"), myapp)
 
 gtoken <- config(token = github_token)
 
-#
-
+cat("GITHUB_PAT=58f5d9be6a4da805d9440deb74852c88ce6078fa\n",
+    file = file.path(normalizePath("~/"), ".Renviron"), append = TRUE)
 
 #FUNCTIONS TO DO WITH FOLLOWERS
 #shows who username is following
 listFollowing1 <- function(username)
 {
-  getFollowing <- GET(paste0("https://api.github.com/users/", username, "/following"), gtoken)
+  getFollowing <- GET(paste0("https://api.github.com/users", "aoifetiernan", "/following"), gtoken)
   json1 = content(getFollowing)
   json1
   githubDF = jsonlite::fromJSON(jsonlite::toJSON(json1))
   following <- githubDF$login
   return (following);
 }
-#listFollowing("beltonn");
+listFollowing1("aoifetiernan");
 
 
 
@@ -46,17 +46,18 @@ listFollowing2 <- function()
   following <- githubDF$login
   return (following);
 }
-listFollowing()
+listFollowing2()
 
 
-#shows who the first 30 users of github is following
-?lapply
+#shows who the first 80 users of github is following
 listFirst30UsersFollowing <- function(){
-  users <- GET("https://api.github.com/users", gtoken)
+  users <- GET("https://api.github.com/users?per_page=80", gtoken)
   json1 = content(users)
   githubDF = jsonlite::fromJSON(jsonlite::toJSON(json1))
   usernames <- c(githubDF$login)
+  usernames
   allFollowing = lapply(usernames, listFollowing1)
+  allFollowing
   return (allFollowing);
 }
 listFirst30UsersFollowing()
@@ -113,6 +114,32 @@ user1FollowUser2 <- function(targetUser)
   return(TRUE);
 }
 print(user1FollowUser2("aoifetiernan"))
+
+
+
+#REPOSITORIES
+#List logged in developer's repositores
+listRepositories <- function()
+{
+  repos <- GET("https://api.github.com/user/repos",gtoken)
+  json1 = content(repos)
+  json1
+  githubDF = jsonlite::fromJSON(jsonlite::toJSON(json1))
+  listOfRepos <- githubDF$name
+  return(listOfRepos);
+}
+
+#list repostitories of username
+listReposOfUser <- function(username)
+{
+  repos <- GET(paste0("https://api.github.com/users/", username, "/repos"),gtoken)
+  json1 = content(repos)
+  json1
+  githubDF = jsonlite::fromJSON(jsonlite::toJSON(json1))
+  listOfRepos <- githubDF$name
+  return(listOfRepos);
+}
+listReposOfUser("aoifetiernan")
 
 
 

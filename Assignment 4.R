@@ -181,3 +181,44 @@ listOfCommits <- function(owner, repository)
 listOfCommits("beltonn", "final-assignment-1-3rd-year")
 
 
+#ACTIVITIES
+#get list of first 100 events with usersnames
+listFirst100Events <- function()
+{
+  events <- GET("https://api.github.com/events?per_page=100",gtoken)
+  json1 = content(events)
+  json1
+  githubDF = jsonlite::fromJSON(jsonlite::toJSON(json1))
+  listOfEvents <- cbind(githubDF$actor$login, githubDF$type)
+  return (listOfEvents);
+}  
+listFirst100Events()
+
+
+#list repository events 
+list80RepositoryEvents <- function(owner, repository)
+{
+  events <- GET(paste0("https://api.github.com/repos/", owner, "/", repository,"/","events?per_page=100"),gtoken)
+  json1 = content(events)
+  json1
+  githubDF = jsonlite::fromJSON(jsonlite::toJSON(json1))
+  listOfEvents = githubDF$type
+  return (listOfEvents);
+}  
+list80RepositoryEvents("beltonn", "final-assignment-1-3rd-year")
+
+
+#list repositories being watched 
+listRepositoriesWatched <- function(username)
+{
+  subs <- GET(paste0("https://api.github.com/users/", username, "/subscriptions"),gtoken)
+  json1 = content(subs)
+  json1
+  githubDF = jsonlite::fromJSON(jsonlite::toJSON(json1))
+  listOfEvents = githubDF$owner$login
+  listOfEvents
+  return (listOfEvents);
+}  
+listRepositoriesWatched("mojombo")
+
+

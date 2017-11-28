@@ -222,3 +222,5 @@ listRepositoriesWatched <- function(username)
 listRepositoriesWatched("mojombo")
 
 
+write.csv(listRepositoriesWatched("mojombo"), file="/Users/niamhbelton/Documents/3rd year/Software Engineering/myData.csv")
+

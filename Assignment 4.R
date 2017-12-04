@@ -64,7 +64,7 @@ listFirst30UsersFollowing()
 
 
 #lists followers of username
-listFollowers <- function(username)
+listFollowers1 <- function(username)
 {
   getFollowers <- GET(paste0("https://api.github.com/users/", username, "/followers"), gtoken)
   json1 = content(getFollowers)
@@ -78,7 +78,7 @@ listFollowers <- function(username)
 
 
 #lists followers of logged in developer
-listFollowers <- function()
+listFollowers2 <- function()
 {
   getFollowers <- GET(paste0("https://api.github.com/user/followers"), gtoken)
   json1 = content(getFollowers)
@@ -129,10 +129,10 @@ listRepositories <- function()
   return(listOfRepos);
 }
 
-#list repostitories of username
-listReposOfUser <- function(username)
+#list first 10 repostitories of username
+list10ReposOfUser <- function(username)
 {
-  repos <- GET(paste0("https://api.github.com/users/", username, "/repos"),gtoken)
+  repos <- GET(paste0("https://api.github.com/users/", username, "/repos?per_page=10"),gtoken)
   json1 = content(repos)
   json1
   githubDF = jsonlite::fromJSON(jsonlite::toJSON(json1))
@@ -182,7 +182,7 @@ listOfCommits("beltonn", "final-assignment-1-3rd-year")
 
 
 #ACTIVITIES
-#get list of first 100 events with usersnames
+#get list of first 100 events 
 listFirst100Events <- function()
 {
   events <- GET("https://api.github.com/events?per_page=100",gtoken)
@@ -222,5 +222,154 @@ listRepositoriesWatched <- function(username)
 listRepositoriesWatched("mojombo")
 
 
-write.csv(listRepositoriesWatched("mojombo"), file="/Users/niamhbelton/Documents/3rd year/Software Engineering/myData.csv")
+write.csv(listRepositoriesWatched("mojombo"), file="/Users/niamhbelton/Documents/3rd year/Software Engineering/myData.csv", append = TRUE)
+?write.csv
+
+#ASSIGNMENT 6
+#taking the first 10 members from the first 10 organizations created on github
+first10membersOfFirst10Orgs <- function()
+{
+  organizations <- GET("https://api.github.com/organizations?per_page=10",gtoken)
+  json1 = content(organizations)
+  json1
+  githubDF = jsonlite::fromJSON(jsonlite::toJSON(json1))
+  listOfOrgs = githubDF$login
+  listOfOrgs
+  data <- lapply(listOfOrgs, getMembers)
+  l <- list()
+  for(i in 1:length(data)){
+    l <- c(l, data[[i]])
+  }
+  return (l);
+}  
+
+getMembers <- function(organization)
+{
+  members <- GET(paste0("https://api.github.com/orgs/",organization,"/members?per_page=10"),gtoken)
+  json1 = content(members)
+  json1
+  githubDF = jsonlite::fromJSON(jsonlite::toJSON(json1))
+  listOfMembers = githubDF$login
+  listOfMembers
+  return(listOfMembers);
+}
+first10membersOfFirst10Orgs()
+
+write.csv(first10membersOfFirst10Orgs(), file="/Users/niamhbelton/Documents/3rd year/Software Engineering/myData.csv")
+
+
+#Looking at each member's productivity - Number of commits and LOC
+
+#for each person, get their first 10 repositories, get the total number of commits
+#from all their repositories
+inter <- function()
+{
+  members <- first10membersOfFirst10Orgs()
+  DF <- lapply(members, list10ReposOfUser)
+  number <- c()
+  for(i in 1:length(members)){
+    blah <- totalNumberCommits(members[i], DF[[i]][])
+    print(blah)
+    if(length(blah)==0){
+      number[i] = 0
+    }
+    else{
+      number[i] = blah
+    }
+     # n <- cbind(n, totalNumberCommits(members[i], DF[[i]][]))
+    print(number[i])
+    print(paste0("on = ", i))
+    print(length(number))
+    print(number)
+  }
+  return(number);
+}
+totalNumberCommits <- function(owner, repositories)
+{
+  
+  total = 0
+  for(i in 1:length(repositories)){
+    total = total + numberOfCommits(owner, repositories[[i]])
+  }
+  return(total);
+}
+
+
+numberOfCommits <- function(owner, repository)
+{
+ 
+
+  commits <- GET(paste0("https://api.github.com/repos/",owner,"/",repository,"/stats/participation"),gtoken)
+  json1 = content(commits)
+  json1
+  githubDF = jsonlite::fromJSON(jsonlite::toJSON(json1))
+  commitsTotal = 0
+  for(i in 1:52){
+    commitsTotal = commitsTotal + githubDF$owner[[i]]
+  }
+  commitsTotal
+  return(commitsTotal);
+}
+
+
+
+#returns total additions for each user in their first 10 repositories
+inter2 <- function()
+{
+  members <- first100membersOfFirst50Orgs()
+  DF <- lapply(members, listReposOfUser)
+  n <- c()
+  for(i in 1:length(members)){
+    n <- cbind(n, totalLOC(members[i], DF[[i]][]))
+    print(n[i])
+    print(paste0("on = ", i))
+    print(length(n))
+    print(n)
+  }
+  return(number);
+}
+totalLOC <- function(owner, repositories)
+{
+  total = 0
+  for(i in 1:length(repositories)){
+    total = total + LOC(owner, repositories[[i]])
+  }
+  return(total);
+}
+LOC <- function(owner, repository)
+{
+  #owner = members[1]
+  #repository = DF[[1]][[1]]
+  additions <- GET(paste0("https://api.github.com/repos/",owner,"/",repository,"/stats/contributors"),gtoken)
+  
+  json1 = content(additions)
+  json1
+  githubDF = jsonlite::fromJSON(jsonlite::toJSON(json1))
+  
+  #githubDF[[2]] #lists of for each week from each contributor
+  #githubDF[[1]] #gives you total commits to a repository
+  #githubDF[[3]]$login #list of contributors
+  
+  #length(githubDF[[3]])
+  index <- 0
+  for(i in 1:length(githubDF[[3]]$login)){
+    if(githubDF[[3]]$login[[i]] == owner){
+      index = i
+    }
+  }
+  if(index == 0){
+    return(0);
+  }
+  additionsTotal = 0
+  for(i in 1:length(githubDF[[2]][[1]]$a)){
+    additionsTotal = additionsTotal + githubDF[[2]][[index]]$a[[i]]
+  }
+  additionsTotal
+  return(additionsTotal);
+}
+
+
+  
+  
+
 
